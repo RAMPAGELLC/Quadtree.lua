@@ -27,6 +27,8 @@
     quad:clear()
 ]]
 
+-- Quadtree.lua
+
 local Quadtree = {}
 Quadtree.__index = Quadtree
 
@@ -82,13 +84,21 @@ function Quadtree:getIndex(object)
 	local verticalMidpoint = self.x + self.width / 2
 	local horizontalMidpoint = self.y + self.height / 2
 
-	local objectX = object.Position.X
-	local objectY = object.Position.Y
+	local objectX, objectY, objectSizeX, objectSizeY
+	if object.Position and object.Size then
+		objectX = object.Position.X
+		objectY = object.Position.Y
+		objectSizeX = object.Size.X
+		objectSizeY = object.Size.Y
+	else
+		-- If object doesn't have Position and Size properties, return 0
+		return 0
+	end
 
-	local topQuadrant = objectY < horizontalMidpoint and objectY + object.Size.Y < horizontalMidpoint
+	local topQuadrant = objectY < horizontalMidpoint and objectY + objectSizeY < horizontalMidpoint
 	local bottomQuadrant = objectY > horizontalMidpoint
 
-	if objectX < verticalMidpoint and objectX + object.Size.X < verticalMidpoint then
+	if objectX < verticalMidpoint and objectX + objectSizeX < verticalMidpoint then
 		if topQuadrant then
 			index = 2
 		elseif bottomQuadrant then
@@ -104,8 +114,12 @@ function Quadtree:getIndex(object)
 
 	return index
 end
-
 function Quadtree:insert(object)
+	-- Check if the object has Position and Size properties
+	if not (object.Position and object.Size) then
+		return
+	end
+
 	if #self.nodes > 0 then
 		local index = self:getIndex(object)
 		if index ~= 0 then
